@@ -1,0 +1,838 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Disponibilidad Julio 2026 - Colaborativo</title>
+  <!-- Tailwind CSS para un look premium y moderno -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome para iconos limpios -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --bg: #f4f2ec;
+      --panel: #ffffff;
+      --ink: #1f2328;
+      --muted: #68707a;
+      --line: #d7d4cb;
+      --green: #137447;
+      --green-soft: #dff3e8;
+      --red: #b3261e;
+      --red-soft: #f8ddda;
+      --black: #202124;
+      --black-soft: #efede6;
+      --blue: #2f6fed;
+    }
+    body {
+      color: var(--ink);
+      background:
+        linear-gradient(135deg, rgba(19, 116, 71, 0.08), transparent 35%),
+        linear-gradient(315deg, rgba(179, 38, 30, 0.06), transparent 35%),
+        var(--bg);
+    }
+    .day-btn {
+      aspect-ratio: 1 / 1.05;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .day-btn:not(:disabled):hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    .day-btn:not(:disabled):active {
+      transform: scale(0.97);
+    }
+  </style>
+</head>
+<body class="min-height-screen pb-12 font-sans antialiased">
+  <main class="max-w-[780px] mx-auto px-4 py-6 md:py-10">
+    <div class="bg-white rounded-2xl border border-[#d7d4cb] shadow-xl overflow-hidden">
+      
+      <!-- Cabecera -->
+      <header class="p-5 md:p-7 border-b border-[#d7d4cb] bg-[#fffdfa] flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-gray-900 flex items-center gap-2">
+            <i class="fa-regular fa-calendar-days text-[#137447]"></i>
+            Disponibilidad Julio 2026
+          </h1>
+          <div class="mt-2 flex flex-wrap items-center gap-2 text-sm text-[#68707a]">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#dff3e8] text-[#0f4f30] border border-[#a8d8be]">
+              <i class="fa-solid fa-cloud-arrow-up mr-1"></i> Sincronizado en tiempo real
+            </span>
+            <span>• Rojo: No disponible. Verde: Disponible opcional.</span>
+          </div>
+        </div>
+        <!-- Indicador de estado de conexión / guardado -->
+        <div id="sync-status" class="self-start md:self-auto text-xs px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 font-medium flex items-center gap-1.5">
+          <span class="relative flex h-2 w-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-yellow-500"></span>
+          </span>
+          Conectando...
+        </div>
+      </header>
+
+      <!-- Panel de Controles -->
+      <div class="p-5 md:p-7 border-b border-[#d7d4cb] bg-gray-50/50 flex flex-col gap-5">
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Selección de Persona -->
+          <div>
+            <label class="block text-xs font-black uppercase tracking-wider text-[#68707a] mb-2">
+              <i class="fa-solid fa-user mr-1 text-gray-400"></i> Nombre o Integrante
+            </label>
+            <div class="flex gap-2">
+              <select id="person-select" class="w-full h-11 bg-white border border-[#d7d4cb] rounded-lg px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#2f6fed] focus:border-[#2f6fed] transition">
+                <option value="">Cargando nombres...</option>
+              </select>
+              <button id="btn-add-name" type="button" title="Añadir nuevo nombre" class="h-11 px-3.5 bg-gray-100 hover:bg-gray-200 border border-[#d7d4cb] rounded-lg text-gray-700 transition">
+                <i class="fa-solid fa-user-plus"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Selector de Modo / Pincel -->
+          <div>
+            <label class="block text-xs font-black uppercase tracking-wider text-[#68707a] mb-2">
+              <i class="fa-solid fa-paint-brush mr-1 text-gray-400"></i> Modo de Selección (Haz clic en un día)
+            </label>
+            <div class="grid grid-cols-3 gap-2">
+              <button type="button" data-mode="green" class="mode-btn h-11 flex items-center justify-center gap-1.5 border border-[#d7d4cb] rounded-lg text-sm font-bold bg-[#dff3e8] text-[#0f4f30] ring-2 ring-[#137447]">
+                <span class="w-3 h-3 rounded-full bg-[#137447]"></span> Verde
+              </button>
+              <button type="button" data-mode="red" class="mode-btn h-11 flex items-center justify-center gap-1.5 border border-[#d7d4cb] rounded-lg text-sm font-bold bg-white text-gray-700 hover:bg-gray-50">
+                <span class="w-3 h-3 rounded-full bg-[#b3261e]"></span> Rojo
+              </button>
+              <button type="button" data-mode="clear" class="mode-btn h-11 flex items-center justify-center gap-1.5 border border-[#d7d4cb] rounded-lg text-sm font-bold bg-white text-gray-700 hover:bg-gray-50">
+                <i class="fa-solid fa-eraser text-gray-400"></i> Borrar
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Comentarios de la persona seleccionada -->
+        <div>
+          <label class="block text-xs font-black uppercase tracking-wider text-[#68707a] mb-2">
+            <i class="fa-solid fa-comment mr-1 text-gray-400"></i> Mis Comentarios / Notas de este mes
+          </label>
+          <textarea id="comments-field" placeholder="Escribe aquí notas adicionales, explicaciones o condiciones especiales..." class="w-full min-h-[72px] bg-white border border-[#d7d4cb] rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#2f6fed] focus:border-[#2f6fed] transition" disabled></textarea>
+        </div>
+
+      </div>
+
+      <!-- El Calendario -->
+      <div class="p-4 md:p-7">
+        <!-- Cabecera de días de la semana -->
+        <div class="grid grid-cols-7 gap-1 md:gap-2 mb-2 text-center">
+          <span class="text-xs font-black uppercase tracking-widest text-[#68707a]">Lun</span>
+          <span class="text-xs font-black uppercase tracking-widest text-[#68707a]">Mar</span>
+          <span class="text-xs font-black uppercase tracking-widest text-[#68707a]">Mié</span>
+          <span class="text-xs font-black uppercase tracking-widest text-[#68707a]">Jue</span>
+          <span class="text-xs font-black uppercase tracking-widest text-[#68707a]">Vie</span>
+          <span class="text-xs font-black uppercase tracking-widest text-[#68707a]">Sáb</span>
+          <span class="text-xs font-black uppercase tracking-widest text-[#68707a]">Dom</span>
+        </div>
+
+        <!-- Grilla de días (rellenada dinámicamente) -->
+        <div id="calendar-grid" class="grid grid-cols-7 gap-1.5 md:gap-2"></div>
+      </div>
+
+      <!-- Sección de Resumen Global -->
+      <div class="p-5 md:p-7 border-t border-[#d7d4cb] bg-[#fffdfa] flex flex-col gap-6">
+        
+        <!-- Tarjetas de Métricas -->
+        <div class="grid grid-cols-3 gap-3">
+          <div class="border border-[#d7d4cb] rounded-xl p-3 bg-white text-center shadow-sm">
+            <strong id="my-green-counter" class="block text-2xl md:text-3xl font-extrabold text-[#137447]">0</strong>
+            <span class="block text-[10px] md:text-xs text-[#68707a] font-bold uppercase tracking-wider mt-1">Mis Verdes</span>
+          </div>
+          <div class="border border-[#d7d4cb] rounded-xl p-3 bg-white text-center shadow-sm">
+            <strong id="my-red-counter" class="block text-2xl md:text-3xl font-extrabold text-[#b3261e]">0</strong>
+            <span class="block text-[10px] md:text-xs text-[#68707a] font-bold uppercase tracking-wider mt-1">Mis Rojos</span>
+          </div>
+          <div class="border border-[#d7d4cb] rounded-xl p-3 bg-white text-center shadow-sm">
+            <strong id="people-counter" class="block text-2xl md:text-3xl font-extrabold text-gray-800">0</strong>
+            <span class="block text-[10px] md:text-xs text-[#68707a] font-bold uppercase tracking-wider mt-1">Con Voto</span>
+          </div>
+        </div>
+
+        <!-- Vista de tus días marcados -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="border border-[#d7d4cb] rounded-xl p-4 bg-white shadow-sm">
+            <h3 class="text-xs font-black uppercase tracking-wider text-[#137447] mb-3 flex items-center justify-between">
+              <span>Tus Verdes Opcionales</span>
+              <i class="fa-solid fa-circle-check text-green-500"></i>
+            </h3>
+            <div id="green-pill-list" class="flex flex-wrap gap-1.5 min-h-[28px] text-xs">
+              <span class="text-gray-400 italic">Selecciona un usuario</span>
+            </div>
+          </div>
+
+          <div class="border border-[#d7d4cb] rounded-xl p-4 bg-white shadow-sm">
+            <h3 class="text-xs font-black uppercase tracking-wider text-[#b3261e] mb-3 flex items-center justify-between">
+              <span>Tus Rojos (No Disponible)</span>
+              <i class="fa-solid fa-circle-xmark text-red-500"></i>
+            </h3>
+            <div id="red-pill-list" class="flex flex-wrap gap-1.5 min-h-[28px] text-xs">
+              <span class="text-gray-400 italic">Selecciona un usuario</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Comentarios de todo el equipo -->
+        <div class="border border-[#d7d4cb] rounded-xl p-4 bg-white shadow-sm">
+          <h3 class="text-xs font-black uppercase tracking-wider text-[#1f2328] mb-3">
+            <i class="fa-solid fa-comments text-blue-500 mr-1.5"></i> Comentarios / Notas de todo el Equipo
+          </h3>
+          <div id="all-comments-list" class="space-y-2 max-h-[200px] overflow-y-auto pr-1 text-sm">
+            <p class="text-gray-400 italic text-center py-2">No hay comentarios aún.</p>
+          </div>
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="flex flex-col sm:flex-row gap-3">
+          <button id="btn-copy" type="button" class="flex-1 h-12 bg-gray-900 hover:bg-black text-white font-bold rounded-xl flex items-center justify-center gap-2 transition shadow-md">
+            <i class="fa-solid fa-copy"></i> Copiar Resumen Completo
+          </button>
+          <button id="btn-download" type="button" class="flex-1 h-12 bg-white hover:bg-gray-50 text-gray-800 border border-[#d7d4cb] font-bold rounded-xl flex items-center justify-center gap-2 transition">
+            <i class="fa-solid fa-file-csv text-green-700"></i> Descargar Datos CSV
+          </button>
+        </div>
+
+        <!-- Notificaciones flotantes internas -->
+        <div id="notification-bar" class="hidden text-center text-sm font-bold p-3 bg-[#dff3e8] border border-[#a8d8be] text-[#0f4f30] rounded-xl transition-all duration-300"></div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Modal para agregar usuario nuevo -->
+  <div id="name-modal" class="fixed inset-0 bg-black/60 z-50 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-white border border-[#d7d4cb] rounded-2xl max-w-sm w-full p-6 shadow-2xl relative">
+      <h3 class="text-lg font-extrabold text-gray-900 mb-2">Añadir Integrante</h3>
+      <p class="text-xs text-gray-500 mb-4">Introduce el nombre de la persona que se unirá al calendario.</p>
+      <input id="input-new-name" type="text" placeholder="Ej: Carmen Gómez" class="w-full h-11 border border-[#d7d4cb] rounded-lg px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#2f6fed] mb-4">
+      <div class="flex gap-2">
+        <button id="btn-cancel-modal" type="button" class="flex-1 h-11 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-lg text-sm transition">
+          Cancelar
+        </button>
+        <button id="btn-save-modal" type="button" class="flex-1 h-11 bg-[#137447] hover:bg-[#0f4f30] text-white font-bold rounded-lg text-sm transition">
+          Añadir
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase Scripts (Modular standard imports compatible with CDN execution) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, onSnapshot, collection, getDocs, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // Variables globales inyectadas por el entorno o por defecto
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'disponibilidad-julio-2026';
+    const firebaseConfig = typeof __firebase_config !== 'undefined' 
+      ? JSON.parse(__firebase_config) 
+      : {
+          apiKey: "",
+          authDomain: "test-app.firebaseapp.com",
+          projectId: "test-app",
+          storageBucket: "test-app.appspot.com",
+          messagingSenderId: "12345",
+          appId: "1:12345:web:123"
+        };
+
+    // Inicializar Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // Estado local de la app
+    let currentUser = null;
+    let selectedMode = "green"; // 'green' | 'red' | 'clear'
+    let selectedPerson = "";
+    let localResponses = {}; // Nombre -> { days: { "5": "green" }, comments: "..." }
+    let selectableNames = [
+      "Nombre 1",
+      "Nombre 2",
+      "Nombre 3",
+      "Nombre 4"
+    ];
+
+    // Días bloqueados (fines de semana de Julio 2026 y días adicionales del original)
+    const blockedDays = new Set([4, 5, 11, 12, 18, 19, 25, 26, 30, 31]);
+    const weekdays = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
+    const year = 2026;
+    const monthIndex = 6; // Julio (0-indexed)
+
+    // Referencias de UI
+    const personSelect = document.getElementById("person-select");
+    const commentsField = document.getElementById("comments-field");
+    const calendarGrid = document.getElementById("calendar-grid");
+    const modeButtons = document.querySelectorAll(".mode-btn");
+    const syncStatus = document.getElementById("sync-status");
+    const myGreenCounter = document.getElementById("my-green-counter");
+    const myRedCounter = document.getElementById("my-red-counter");
+    const peopleCounter = document.getElementById("people-counter");
+    const greenPillList = document.getElementById("green-pill-list");
+    const redPillList = document.getElementById("red-pill-list");
+    const allCommentsList = document.getElementById("all-comments-list");
+    const notificationBar = document.getElementById("notification-bar");
+    
+    // Referencias Botones/Modales
+    const btnCopy = document.getElementById("btn-copy");
+    const btnDownload = document.getElementById("btn-download");
+    const btnAddName = document.getElementById("btn-add-name");
+    const nameModal = document.getElementById("name-modal");
+    const inputNewName = document.getElementById("input-new-name");
+    const btnCancelModal = document.getElementById("btn-cancel-modal");
+    const btnSaveModal = document.getElementById("btn-save-modal");
+
+    // 1. AUTENTICACIÓN (Requisito Obligatorio de Firebase)
+    const initAuth = async () => {
+      try {
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+          await signInWithCustomToken(auth, __initial_auth_token);
+        } else {
+          await signInAnonymously(auth);
+        }
+      } catch (err) {
+        console.error("Error al autenticar:", err);
+        showToast("Error de conexión de red, intentando reconectar...", true);
+      }
+    };
+
+    // Observar estado de autenticación
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        currentUser = user;
+        updateSyncStatus("Conectado", "success");
+        // Suscribirse a los datos solo cuando ya estemos autenticados
+        startFirestoreSync();
+      } else {
+        updateSyncStatus("Desconectado", "error");
+      }
+    });
+
+    initAuth();
+
+    // 2. SINCRONIZACIÓN CON FIRESTORE (Paths strictly conforming to Rule 1)
+    // Usaremos dos documentos fijos en la colección pública para evitar consultas complejas
+    // - Documento 'names': Contiene el listado de nombres seleccionables (así se puede añadir dinámicamente)
+    // - Documento 'responses': Contiene el mapa global de disponibilidad por nombre
+    
+    function startFirestoreSync() {
+      if (!currentUser) return;
+
+      const namesDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'config', 'names_list');
+      const dataDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'responses', 'calendar_data');
+
+      // Escuchar cambios del listado de nombres seleccionables
+      onSnapshot(namesDocRef, (snap) => {
+        if (snap.exists()) {
+          const data = snap.data();
+          if (data && Array.isArray(data.list)) {
+            selectableNames = data.list;
+          }
+        } else {
+          // Si no existe, inicializar con los nombres por defecto
+          setDoc(namesDocRef, { list: selectableNames }).catch(e => console.error(e));
+        }
+        rebuildPersonSelect();
+      }, (err) => {
+        console.error("Error cargando nombres:", err);
+      });
+
+      // Escuchar cambios de respuestas del calendario
+      onSnapshot(dataDocRef, (snap) => {
+        updateSyncStatus("Sincronizado", "success");
+        if (snap.exists()) {
+          localResponses = snap.data().responses || {};
+        } else {
+          localResponses = {};
+        }
+        renderApp();
+      }, (err) => {
+        console.error("Error al sincronizar datos:", err);
+        updateSyncStatus("Error de sincronización", "error");
+      });
+    }
+
+    // Guardado automático en Firebase
+    async function saveResponsesToCloud() {
+      if (!currentUser) return;
+      updateSyncStatus("Guardando...", "loading");
+      const dataDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'responses', 'calendar_data');
+      try {
+        await setDoc(dataDocRef, { responses: localResponses }, { merge: true });
+        updateSyncStatus("Guardado", "success");
+      } catch (err) {
+        console.error("Error al guardar:", err);
+        updateSyncStatus("Error al guardar", "error");
+        showToast("No se pudo guardar la modificación.", true);
+      }
+    }
+
+    async function saveNamesToCloud() {
+      if (!currentUser) return;
+      const namesDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'config', 'names_list');
+      try {
+        await setDoc(namesDocRef, { list: selectableNames });
+      } catch (err) {
+        console.error("Error al guardar nombres:", err);
+      }
+    }
+
+    // 3. RENDERIZACIÓN DE INTERFAZ
+    function rebuildPersonSelect() {
+      const currentSelected = personSelect.value;
+      personSelect.innerHTML = '<option value="">Selecciona tu nombre...</option>';
+      selectableNames.sort().forEach((name) => {
+        const option = document.createElement("option");
+        option.value = name;
+        option.textContent = name;
+        if (name === currentSelected) {
+          option.selected = true;
+        }
+        personSelect.appendChild(option);
+      });
+
+      // Habilitar campos si hay selección
+      toggleInputsState();
+    }
+
+    function toggleInputsState() {
+      const active = !!personSelect.value;
+      commentsField.disabled = !active;
+      if (!active) {
+        commentsField.value = "";
+      } else {
+        const record = localResponses[personSelect.value] || { days: {}, comments: "" };
+        commentsField.value = record.comments || "";
+      }
+    }
+
+    // Reconstruir visualmente el calendario completo
+    function renderCalendar() {
+      calendarGrid.innerHTML = "";
+      const firstDay = new Date(year, monthIndex, 1);
+      // Calcular espaciadores iniciales (Lunes = 0, Domingo = 6)
+      const leadingSpacers = (firstDay.getDay() + 6) % 7;
+
+      // Imprimir espacios vacíos
+      for (let i = 0; i < leadingSpacers; i++) {
+        const spacer = document.createElement("div");
+        spacer.className = "bg-transparent aspect-square border border-transparent";
+        calendarGrid.appendChild(spacer);
+      }
+
+      // Obtener respuestas de la persona activa
+      const currentSelectedName = personSelect.value;
+      const activeRecord = currentSelectedName ? (localResponses[currentSelectedName] || { days: {} }) : { days: {} };
+      const myDays = activeRecord.days || {};
+
+      // Dibujar cada día de Julio (31 días)
+      for (let day = 1; day <= 31; day++) {
+        const isBlocked = blockedDays.has(day);
+        
+        // Calcular conteos globales para este día específico
+        const totals = { green: 0, red: 0 };
+        Object.values(localResponses).forEach((record) => {
+          if (record.days) {
+            if (record.days[day] === "green") totals.green++;
+            if (record.days[day] === "red") totals.red++;
+          }
+        });
+
+        // Estado particular de este día para el usuario seleccionado
+        const dayState = isBlocked ? "blocked" : (myDays[day] || "idle");
+
+        // Construir botón
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.disabled = isBlocked;
+        btn.dataset.day = day;
+
+        // Estilos condicionales refinados
+        let classes = "day-btn p-1.5 rounded-xl border flex flex-col justify-between text-left relative overflow-hidden ";
+        
+        if (isBlocked) {
+          classes += "bg-gray-950 border-gray-950 text-gray-500 cursor-not-allowed opacity-60";
+        } else if (dayState === "green") {
+          classes += "bg-[#dff3e8] border-[#8ac7a6] text-[#0f4f30]";
+        } else if (dayState === "red") {
+          classes += "bg-[#f8ddda] border-[#e3aaa4] text-[#801a12]";
+        } else {
+          classes += "bg-white border-[#d7d4cb] text-gray-800 hover:border-gray-400";
+        }
+
+        btn.className = classes;
+
+        // Tooltip accesible
+        const weekdayName = weekdays[new Date(year, monthIndex, day).getDay()];
+        btn.setAttribute("aria-label", `${day} de julio, ${weekdayName}. Verdes: ${totals.green}, Rojos: ${totals.red}. ${isBlocked ? "No seleccionable" : ""}`);
+
+        // Estructura interna elegante
+        btn.innerHTML = `
+          <div class="flex justify-between items-start w-full">
+            <span class="font-extrabold text-sm md:text-base">${day}</span>
+            <span class="text-[9px] md:text-[10px] uppercase font-black px-1 rounded ${
+              isBlocked ? 'text-gray-400' : (dayState === 'green' ? 'bg-[#137447] text-white' : (dayState === 'red' ? 'bg-[#b3261e] text-white' : 'text-transparent'))
+            }">
+              ${isBlocked ? 'Bloq.' : (dayState === 'green' ? 'Verde' : (dayState === 'red' ? 'Rojo' : ''))}
+            </span>
+          </div>
+          <div class="w-full flex flex-col gap-0.5 mt-1 md:mt-3" aria-hidden="true">
+            <div class="flex items-center justify-between text-[9px] md:text-[11px] font-extrabold px-1 rounded ${totals.green > 0 ? 'bg-[#137447]/10 text-[#0f4f30]' : 'text-gray-300'}">
+              <span>Verdes</span><span>${totals.green}</span>
+            </div>
+            <div class="flex items-center justify-between text-[9px] md:text-[11px] font-extrabold px-1 rounded ${totals.red > 0 ? 'bg-[#b3261e]/10 text-[#801a12]' : 'text-gray-300'}">
+              <span>Rojos</span><span>${totals.red}</span>
+            </div>
+          </div>
+        `;
+
+        if (!isBlocked) {
+          btn.addEventListener("click", () => handleDayClick(day));
+        }
+
+        calendarGrid.appendChild(btn);
+      }
+    }
+
+    // Manejar el pintado interactivo de los días
+    async function handleDayClick(day) {
+      const person = personSelect.value;
+      if (!person) {
+        showToast("Por favor, selecciona un nombre en la lista antes de editar el calendario.", true);
+        // Hacer foco en el selector para guiar al usuario
+        personSelect.focus();
+        return;
+      }
+
+      // Asegurar que exista el nodo para este usuario
+      if (!localResponses[person]) {
+        localResponses[person] = { days: {}, comments: "" };
+      }
+
+      const record = localResponses[person];
+      record.days = record.days || {};
+
+      if (selectedMode === "clear") {
+        delete record.days[day];
+      } else {
+        record.days[day] = selectedMode;
+      }
+
+      // Guardar cambios instantáneamente
+      renderApp();
+      await saveResponsesToCloud();
+    }
+
+    // Actualizar resúmenes individuales, globales y comentarios colectivos
+    function renderSummary() {
+      const activePerson = personSelect.value;
+      let greens = [];
+      let reds = [];
+
+      if (activePerson && localResponses[activePerson]) {
+        const record = localResponses[activePerson];
+        Object.entries(record.days || {}).forEach(([day, state]) => {
+          if (state === "green") greens.push(Number(day));
+          if (state === "red") reds.push(Number(day));
+        });
+      }
+
+      greens.sort((a,b)=>a-b);
+      reds.sort((a,b)=>a-b);
+
+      // Actualizar indicadores numéricos
+      myGreenCounter.textContent = greens.length;
+      myRedCounter.textContent = reds.length;
+
+      // Contar cuántas personas únicas han votado algo
+      const votersCount = Object.keys(localResponses).filter(p => {
+        const rec = localResponses[p];
+        return rec && rec.days && Object.keys(rec.days).length > 0;
+      }).length;
+      peopleCounter.textContent = votersCount;
+
+      // Dibujar píldoras individuales
+      const formatPillDate = (d) => `${String(d).padStart(2,'0')}/07`;
+      
+      if (!activePerson) {
+        greenPillList.innerHTML = `<span class="text-gray-400 italic">Selecciona un usuario</span>`;
+        redPillList.innerHTML = `<span class="text-gray-400 italic">Selecciona un usuario</span>`;
+      } else {
+        // Verdes
+        if (greens.length === 0) {
+          greenPillList.innerHTML = `<span class="text-gray-400 italic">Sin días</span>`;
+        } else {
+          greenPillList.innerHTML = "";
+          greens.forEach(d => {
+            const span = document.createElement("span");
+            span.className = "inline-flex items-center px-2 py-1 rounded bg-[#dff3e8] text-[#0f4f30] font-bold border border-[#a8d8be]";
+            span.textContent = formatPillDate(d);
+            greenPillList.appendChild(span);
+          });
+        }
+        // Rojos
+        if (reds.length === 0) {
+          redPillList.innerHTML = `<span class="text-gray-400 italic">Sin días</span>`;
+        } else {
+          redPillList.innerHTML = "";
+          reds.forEach(d => {
+            const span = document.createElement("span");
+            span.className = "inline-flex items-center px-2 py-1 rounded bg-[#f8ddda] text-[#801a12] font-bold border border-[#e3aaa4]";
+            span.textContent = formatPillDate(d);
+            redPillList.appendChild(span);
+          });
+        }
+      }
+
+      // Dibujar sección de comentarios colectivos
+      allCommentsList.innerHTML = "";
+      const recordsWithComments = Object.entries(localResponses).filter(([, rec]) => rec.comments && rec.comments.trim() !== "");
+      
+      if (recordsWithComments.length === 0) {
+        allCommentsList.innerHTML = `<p class="text-gray-400 italic text-center py-2">No hay comentarios de equipo aún.</p>`;
+      } else {
+        recordsWithComments.forEach(([name, rec]) => {
+          const div = document.createElement("div");
+          div.className = "p-2.5 rounded-lg bg-gray-50 border border-gray-100 flex flex-col gap-1";
+          div.innerHTML = `
+            <div class="flex items-center justify-between">
+              <span class="font-extrabold text-xs text-gray-800">${name}</span>
+              <span class="text-[10px] text-gray-400 font-medium">Nota registrada</span>
+            </div>
+            <p class="text-gray-700 text-xs italic">"${rec.comments}"</p>
+          `;
+          allCommentsList.appendChild(div);
+        });
+      }
+    }
+
+    function renderApp() {
+      renderCalendar();
+      renderSummary();
+    }
+
+    // 4. MANEJO DE EVENTOS DE ENTRADA
+    personSelect.addEventListener("change", () => {
+      toggleInputsState();
+      renderApp();
+    });
+
+    // Guardado con debounce para los comentarios
+    let commentTimer = null;
+    commentsField.addEventListener("input", () => {
+      const person = personSelect.value;
+      if (!person) return;
+      
+      if (!localResponses[person]) {
+        localResponses[person] = { days: {}, comments: "" };
+      }
+      localResponses[person].comments = commentsField.value.trim();
+      
+      renderSummary(); // Actualizar interfaz local instantáneamente
+
+      clearTimeout(commentTimer);
+      commentTimer = setTimeout(() => {
+        saveResponsesToCloud();
+      }, 800);
+    });
+
+    // Cambiar pincel / modo
+    modeButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        selectedMode = btn.dataset.mode;
+        // Reiniciar clases visuales de los botones
+        modeButtons.forEach(b => {
+          b.className = "mode-btn h-11 flex items-center justify-center gap-1.5 border border-[#d7d4cb] rounded-lg text-sm font-bold bg-white text-gray-700 hover:bg-gray-50";
+        });
+        
+        // Estilo según el tipo
+        if (selectedMode === "green") {
+          btn.className = "mode-btn h-11 flex items-center justify-center gap-1.5 border border-[#d7d4cb] rounded-lg text-sm font-bold bg-[#dff3e8] text-[#0f4f30] ring-2 ring-[#137447]";
+        } else if (selectedMode === "red") {
+          btn.className = "mode-btn h-11 flex items-center justify-center gap-1.5 border border-[#d7d4cb] rounded-lg text-sm font-bold bg-[#f8ddda] text-[#801a12] ring-2 ring-[#b3261e]";
+        } else {
+          btn.className = "mode-btn h-11 flex items-center justify-center gap-1.5 border border-[#d7d4cb] rounded-lg text-sm font-bold bg-gray-800 text-white ring-2 ring-gray-900";
+        }
+      });
+    });
+
+    // Modal para agregar nuevos integrantes
+    btnAddName.addEventListener("click", () => {
+      nameModal.classList.remove("hidden");
+      nameModal.classList.add("flex");
+      inputNewName.focus();
+    });
+
+    btnCancelModal.addEventListener("click", () => {
+      nameModal.classList.add("hidden");
+      nameModal.classList.remove("flex");
+      inputNewName.value = "";
+    });
+
+    btnSaveModal.addEventListener("click", async () => {
+      const name = inputNewName.value.trim();
+      if (!name) {
+        showToast("Introduce un nombre válido", true);
+        return;
+      }
+      if (selectableNames.includes(name)) {
+        showToast("Este integrante ya está en la lista", true);
+        return;
+      }
+
+      selectableNames.push(name);
+      nameModal.classList.add("hidden");
+      nameModal.classList.remove("flex");
+      inputNewName.value = "";
+
+      // Seleccionar automáticamente el nombre recién creado
+      personSelect.value = name;
+      rebuildPersonSelect();
+      renderApp();
+
+      // Guardar lista en Firestore
+      await saveNamesToCloud();
+      showToast(`¡${name} ha sido añadido con éxito!`);
+    });
+
+    // Copiar resumen de texto formateado
+    btnCopy.addEventListener("click", () => {
+      const nameSelected = personSelect.value || "Sin seleccionar usuario";
+      
+      const getFormattedDays = (user, state) => {
+        if (!localResponses[user]) return "Ninguno";
+        return Object.entries(localResponses[user].days || {})
+          .filter(([, v]) => v === state)
+          .map(([d]) => `${String(d).padStart(2,'0')}/07`)
+          .sort()
+          .join(", ") || "Ninguno";
+      };
+
+      // Construcción del informe resumido
+      let txt = `=====================================\n`;
+      txt += `RESUMEN DE DISPONIBILIDAD - JULIO 2026\n`;
+      txt += `=====================================\n\n`;
+      txt += `Usuario consultor: ${nameSelected}\n`;
+      txt += `- Verdes opcionales: ${getFormattedDays(nameSelected, "green")}\n`;
+      txt += `- Rojos no disponibles: ${getFormattedDays(nameSelected, "red")}\n`;
+      txt += `- Notas: ${localResponses[nameSelected]?.comments || "Sin notas"}\n\n`;
+      txt += `-------------------------------------\n`;
+      txt += `ESTADO GENERAL DEL EQUIPO (Totales por Día):\n`;
+      txt += `-------------------------------------\n`;
+
+      for (let day = 1; day <= 31; day++) {
+        const isBlocked = blockedDays.has(day);
+        const dateStr = `${String(day).padStart(2,'0')}/07`;
+        
+        let greenCount = 0;
+        let redCount = 0;
+        Object.values(localResponses).forEach(r => {
+          if (r.days?.[day] === "green") greenCount++;
+          if (r.days?.[day] === "red") redCount++;
+        });
+
+        if (isBlocked) {
+          txt += `${dateStr} [Finde / Bloqueado]\n`;
+        } else {
+          txt += `${dateStr}: V ${greenCount} / R ${redCount}\n`;
+        }
+      }
+
+      txt += `\nGenerado automáticamente en tiempo real el ${new Date().toLocaleDateString('es-ES')}`;
+
+      // Clipboard fallback seguro (Rule-friendly para iframes)
+      try {
+        const temp = document.createElement("textarea");
+        temp.value = txt;
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand("copy");
+        temp.remove();
+        showToast("¡Resumen de disponibilidad copiado al portapapeles!");
+      } catch (err) {
+        showToast("Error al copiar texto", true);
+      }
+    });
+
+    // Descarga de CSV consolidado con todos los datos
+    btnDownload.addEventListener("click", () => {
+      const rows = [];
+      // Cabecera
+      rows.push(["Nombre", "Fecha", "Estado Individual", "Total Verdes Día", "Total Rojos Día", "Día Bloqueado"].join(","));
+
+      selectableNames.forEach((name) => {
+        const record = localResponses[name] || { days: {} };
+        for (let day = 1; day <= 31; day++) {
+          const isBlocked = blockedDays.has(day);
+          const isoDateStr = `${year}-07-${String(day).padStart(2,'0')}`;
+          
+          // Calcular totales del día para el CSV
+          let greenCount = 0;
+          let redCount = 0;
+          Object.values(localResponses).forEach(r => {
+            if (r.days?.[day] === "green") greenCount++;
+            if (r.days?.[day] === "red") redCount++;
+          });
+
+          const currentDayState = record.days?.[day] || "idle";
+
+          rows.push([
+            `"${name.replace(/"/g, '""')}"`,
+            `"${isoDateStr}"`,
+            `"${currentDayState}"`,
+            greenCount,
+            redCount,
+            isBlocked ? "Sí" : "No"
+          ].join(","));
+        }
+      });
+
+      const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + rows.join("\n");
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `disponibilidad_julio_2026_equipo.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast("CSV descargado exitosamente");
+    });
+
+    // 5. AUXILIARES DE UI
+    function updateSyncStatus(text, status) {
+      if (status === "success") {
+        syncStatus.className = "self-start md:self-auto text-xs px-3 py-1.5 rounded-lg bg-emerald-100 text-[#0f4f30] font-bold flex items-center gap-1.5";
+        syncStatus.innerHTML = `<i class="fa-solid fa-circle-check"></i> ${text}`;
+      } else if (status === "error") {
+        syncStatus.className = "self-start md:self-auto text-xs px-3 py-1.5 rounded-lg bg-rose-100 text-rose-800 font-bold flex items-center gap-1.5";
+        syncStatus.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> ${text}`;
+      } else if (status === "loading") {
+        syncStatus.className = "self-start md:self-auto text-xs px-3 py-1.5 rounded-lg bg-amber-100 text-amber-800 font-bold flex items-center gap-1.5";
+        syncStatus.innerHTML = `<span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span></span> ${text}`;
+      }
+    }
+
+    let toastTimer = null;
+    function showToast(msg, isError = false) {
+      notificationBar.textContent = msg;
+      notificationBar.classList.remove("hidden");
+      
+      if (isError) {
+        notificationBar.className = "text-center text-sm font-bold p-3 bg-[#f8ddda] border border-[#e3aaa4] text-[#801a12] rounded-xl transition-all duration-300";
+      } else {
+        notificationBar.className = "text-center text-sm font-bold p-3 bg-[#dff3e8] border border-[#a8d8be] text-[#0f4f30] rounded-xl transition-all duration-300";
+      }
+
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        notificationBar.classList.add("hidden");
+      }, 4000);
+    }
+  </script>
+</body>
+</html>
